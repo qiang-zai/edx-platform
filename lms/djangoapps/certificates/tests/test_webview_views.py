@@ -656,6 +656,23 @@ class CertificatesViewsTests(CommonCertificatesTestCase):
         self.assertIn("We cannot find a certificate with this URL or ID number.", response.content)
 
     @override_settings(FEATURES=FEATURES_WITH_CERTS_ENABLED)
+    @override_settings(LANGUAGE_CODE='fr')
+    def test_html_lang_attribute_is_dynamic_for_invalid_certificate_html_view(self):
+        """
+        Tests that Certificate HTML Web View's lang attribute is based on user language.
+        """
+        self._add_course_certificates(count=1, signatory_count=2)
+        test_url = get_certificate_url(
+            user_id=self.user.id,
+            course_id=unicode(self.course.id)
+        )
+
+        # invalidate certificate and verify that "Cannot Find Certificate" is returned
+        self.cert.invalidate()
+        response = self.client.get(test_url)
+        self.assertIn('<html class="no-js" lang="fr">', response.content)
+
+    @override_settings(FEATURES=FEATURES_WITH_CERTS_ENABLED)
     def test_html_view_for_non_viewable_certificate_and_for_student_user(self):
         """
         Tests that Certificate HTML Web View returns "Cannot Find Certificate" if certificate is not viewable yet.
@@ -781,6 +798,34 @@ class CertificatesViewsTests(CommonCertificatesTestCase):
         response = self.client.get(test_url)
         self.assertNotIn('Signatory_Name 0', response.content)
         self.assertNotIn('Signatory_Title 0', response.content)
+
+    @override_settings(FEATURES=FEATURES_WITH_CERTS_ENABLED)
+    def test_render_html_view_is_html_escaped(self):
+        test_certificates = [
+            {
+                'id': 0,
+                'name': 'Certificate Name',
+                'description': '<script>Description</script>',
+                'course_title': '<script>course_title</script>',
+                'org_logo_path': '/t4x/orgX/testX/asset/org-logo-1.png',
+                'signatories': [],
+                'version': 1,
+                'is_active': True
+            }
+        ]
+
+        self.course.certificates = {'certificates': test_certificates}
+        self.course.cert_html_view_enabled = True
+        self.course.save()
+        self.store.update_item(self.course, self.user.id)
+
+        test_url = get_certificate_url(
+            user_id=self.user.id,
+            course_id=unicode(self.course.id)
+        )
+        response = self.client.get(test_url)
+        self.assertNotIn('<script>', response.content)
+
 
     @override_settings(FEATURES=FEATURES_WITH_CERTS_DISABLED)
     def test_render_html_view_disabled_feature_flag_returns_static_url(self):
