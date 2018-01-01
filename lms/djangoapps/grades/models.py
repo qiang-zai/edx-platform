@@ -553,6 +553,10 @@ class PersistentCourseGrade(TimeStampedModel):
             grade.passed_timestamp = now()
             grade.save()
 
+        if not passed and grade.passed_timestamp:
+            grade.passed_timestamp = None
+            grade.save()
+
         cls._emit_grade_calculated_event(grade)
         cls._update_cache(course_id, user_id, grade)
         return grade
