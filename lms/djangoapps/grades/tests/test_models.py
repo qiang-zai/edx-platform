@@ -395,6 +395,17 @@ class PersistentCourseGradesTest(GradesModelTestCase):
         self.assertEqual(grade.letter_grade, u'')
         self.assertEqual(grade.passed_timestamp, None)
 
+        # After the user earns a passing grade from failing grade, the passed_timestamp is set
+        self.params.update({
+            u'percent_grade': 100.0,
+            u'letter_grade': u'A',
+            u'passed': True,
+        })
+        grade = PersistentCourseGrade.update_or_create(**self.params)
+        passed_timestamp = grade.passed_timestamp
+        self.assertEqual(grade.letter_grade, u'A')
+        self.assertIsInstance(passed_timestamp, datetime)
+
     def test_passed_timestamp_is_now(self):
         with freeze_time(now()):
             grade = PersistentCourseGrade.update_or_create(**self.params)
