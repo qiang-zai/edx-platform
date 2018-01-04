@@ -160,6 +160,38 @@ def _apply_third_party_auth_overrides(request, form_desc):
                 )
 
 
+def _apply_third_party_auth_overrides(request, form_desc):
+    """Modify the login form if the user has authenticated with a third-party provider.
+    If a user has successfully authenticated with a third-party provider,
+    and an email is associated with it then we fill in the email field with readonly property.
+    Arguments:
+        request (HttpRequest): The request for the registration form, used
+            to determine if the user has successfully authenticated
+            with a third-party provider.
+        form_desc (FormDescription): The registration form description
+    """
+    if third_party_auth.is_enabled():
+        running_pipeline = third_party_auth.pipeline.get(request)
+        if running_pipeline:
+            current_provider = third_party_auth.provider.Registry.get_from_pipeline(running_pipeline)
+            if current_provider and enterprise_customer_for_request(request):
+                pipeline_kwargs = running_pipeline.get('kwargs')
+
+                # Details about the user sent back from the provider.
+                details = pipeline_kwargs.get('details')
+                email = details.get('email', '')
+
+                # override the email field.
+                form_desc.override_field_properties(
+                    "email",
+                    default=email,
+                    restrictions={"readonly": "readonly"} if email else {
+                        "min_length": accounts.EMAIL_MIN_LENGTH,
+                        "max_length": accounts.EMAIL_MAX_LENGTH,
+                    }
+                )
+
+
 class RegistrationFormFactory(object):
     """HTTP end-points for creating a new user. """
 
