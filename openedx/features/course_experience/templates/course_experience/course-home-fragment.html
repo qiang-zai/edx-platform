@@ -19,6 +19,13 @@ from openedx.features.course_experience import UNIFIED_COURSE_TAB_FLAG, SHOW_REV
 
 <%block name="content">
 <div class="course-view page-content-container" id="course-container">
+
+    ${static.renderReact(
+      component="CourseHomeUpsellExperimentModal",
+      id="upsell-modal",
+      props={},
+    )}
+
     <header class="page-header has-secondary">
         <div class="page-header-main">
             <nav aria-label="${_('Course Outline')}" class="sr-is-focusable" tabindex="-1">
