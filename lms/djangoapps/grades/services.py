@@ -13,7 +13,6 @@ from .models import PersistentSubsectionGrade, PersistentSubsectionGradeOverride
 from .signals.signals import SUBSECTION_OVERRIDE_CHANGED
 
 
-
 class GradesService(object):
     """
     Course grade service

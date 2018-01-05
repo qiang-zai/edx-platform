@@ -25,4 +25,3 @@ class CertificatesConfig(AppConfig):
         if settings.FEATURES.get('ENABLE_SPECIAL_EXAMS'):
             from .services import CertificateService
             set_runtime_service('certificates', CertificateService())
-
