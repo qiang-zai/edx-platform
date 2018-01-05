@@ -399,7 +399,7 @@ LOGIN_URL = EDX_ROOT_URL + '/signin'
 # use the ratelimit backend to prevent brute force attacks
 AUTHENTICATION_BACKENDS = [
     'rules.permissions.ObjectPermissionBackend',
-    'ratelimitbackend.backends.RateLimitModelBackend',
+    'openedx.core.djangolib.rate_limit_all_user_auth_backend.RateLimitedAllUserBackend',
 ]
 
 LMS_BASE = None

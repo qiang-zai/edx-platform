@@ -270,8 +270,15 @@ def create_export_tarball(course_module, course_key, context, status=None):
 
     Updates the context with any error information if applicable.
     """
+    export_path = settings.MEDIA_ROOT / 'exports'
+
+    try:
+        os.makedirs(export_path)
+    except OSError:
+        pass
+
     name = course_module.url_name
-    export_file = NamedTemporaryFile(prefix=name + '.', suffix=".tar.gz")
+    export_file = NamedTemporaryFile(prefix=name + '.', suffix=".tar.gz", dir=export_path)
     root_dir = path(mkdtemp())
 
     try:
