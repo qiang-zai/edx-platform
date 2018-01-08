@@ -24,7 +24,7 @@ class GatingService(object):
         """
         return gating_api.compute_is_prereq_met(content_id, user_id, recalc_on_unmet)
 
-    def is_prereq_required(self, course_key, content_key, relationship):
+    def required_prereq(self, course_key, content_key, relationship):
         """
         Returns the prerequiste if one is required
 

@@ -118,7 +118,7 @@ class SequenceBlockTestCase(XModuleXmlImportTest):
         )
         self._assert_view_at_position(html, expected_position=1)
         self.assertIn(unicode(self.sequence_3_1.location), html)
-        self.assertIn("'gate_content': False", html)
+        self.assertIn("'gated_content': False", html)
         self.assertIn("'next_url': 'NextSequential'", html)
         self.assertIn("'prev_url': 'PrevSequential'", html)
 
@@ -187,7 +187,7 @@ class SequenceBlockTestCase(XModuleXmlImportTest):
         self.assertIn("seq_module.html", html)
         self.assertIn("'banner_text': None", html)
         self.assertIn("'items': []", html)
-        self.assertIn("'gate_content': True", html)
+        self.assertIn("'gated_content': True", html)
         self.assertIn("'prereq_url': 'PrereqUrl'", html)
         self.assertIn("'prereq_section_name': 'PrereqSectionName'", html)
         self.assertIn("'gated_section_name': u'{}'".format(unicode(sequence.display_name)), html)
@@ -204,7 +204,7 @@ class SequenceBlockTestCase(XModuleXmlImportTest):
             "You must complete this section in order to unlock additional content.'",
             html
         )
-        self.assertIn("'gate_content': False", html)
+        self.assertIn("'gated_content': False", html)
         self.assertIn(unicode(sequence.location), html)
         self.assertIn("'prereq_url': None", html)
         self.assertIn("'prereq_section_name': None", html)
@@ -217,7 +217,7 @@ class SequenceBlockTestCase(XModuleXmlImportTest):
         """
         self.assertIn("seq_module.html", html)
         self.assertIn("'banner_text': None", html)
-        self.assertIn("'gate_content': False", html)
+        self.assertIn("'gated_content': False", html)
         self.assertIn(unicode(sequence.location), html)
         self.assertIn("'prereq_url': None", html)
         self.assertIn("'prereq_section_name': None", html)
@@ -232,7 +232,7 @@ class SequenceBlockTestCase(XModuleXmlImportTest):
         # setup seq_1_2 as a gate and gated
         gating_mock_1_2 = Mock()
         gating_mock_1_2.return_value.is_gate_fulfilled.return_value = False
-        gating_mock_1_2.return_value.is_prereq_required.return_value = True
+        gating_mock_1_2.return_value.required_prereq.return_value = True
         gating_mock_1_2.return_value.compute_is_prereq_met.return_value = [
             False,
             {'url': 'PrereqUrl', 'display_name': 'PrereqSectionName'}
@@ -250,7 +250,7 @@ class SequenceBlockTestCase(XModuleXmlImportTest):
 
         # change seq_1_2 to be ungated, but still a gate (prequiste)
         gating_mock_1_2.return_value.is_gate_fulfilled.return_value = False
-        gating_mock_1_2.return_value.is_prereq_required.return_value = True
+        gating_mock_1_2.return_value.required_prereq.return_value = True
         gating_mock_1_2.return_value.compute_is_prereq_met.return_value = [True, {}]
 
         html = self._get_rendered_student_view(
@@ -263,7 +263,7 @@ class SequenceBlockTestCase(XModuleXmlImportTest):
 
         # change seq_1_2 to have no unfulfilled gates
         gating_mock_1_2.return_value.is_gate_fulfilled.return_value = True
-        gating_mock_1_2.return_value.is_prereq_required.return_value = True
+        gating_mock_1_2.return_value.required_prereq.return_value = True
         gating_mock_1_2.return_value.compute_is_prereq_met.return_value = [True, {}]
 
         html = self._get_rendered_student_view(

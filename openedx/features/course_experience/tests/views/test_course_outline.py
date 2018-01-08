@@ -178,7 +178,7 @@ class TestCourseOutlinePageWithPrerequisites(SharedModuleStoreTestCase, Mileston
 
     def test_content_locked(self):
         """
-        Test that a sequntial/subsection with unmet prereqs correctly indicated that its content is locked
+        Test that a sequential/subsection with unmet prereqs correctly indicated that its content is locked
         """
         course = self.course
         self.setup_gated_section(self.course_blocks['gated_content'], self.course_blocks['prerequisite'])
@@ -206,7 +206,7 @@ class TestCourseOutlinePageWithPrerequisites(SharedModuleStoreTestCase, Mileston
 
     def test_content_unlocked(self):
         """
-        Test that a sequntial/subsection with unmet prereqs correctly indicated that its content is locked
+        Test that a sequential/subsection with unmet prereqs correctly indicated that its content is locked
         """
         course = self.course
         self.setup_gated_section(self.course_blocks['gated_content'], self.course_blocks['prerequisite'])

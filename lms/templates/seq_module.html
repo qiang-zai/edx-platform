@@ -23,7 +23,7 @@
     </button>
     <nav class="sequence-list-wrapper" aria-label="${_('Sequence')}">
       <ol id="sequence-list" role="tablist">
-        % if gate_content:
+        % if gated_content:
         <li>
           <button class="active nav-item tab" aria-hidden="true" disabled>
             <span class="icon fa fa-lock" aria-hidden="true"></span>
@@ -56,7 +56,7 @@
     </nav>
   </div>
 
-  % if gate_content:
+  % if gated_content:
     <%include file="_gated_content.html" args="prereq_url=prereq_url, prereq_section_name=prereq_section_name, gated_section_name=gated_section_name"/>
   % else:
   <div class="sr-is-focusable" tabindex="-1"></div>

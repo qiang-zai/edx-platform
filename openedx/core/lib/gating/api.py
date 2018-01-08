@@ -350,11 +350,11 @@ def compute_is_prereq_met(content_id, user_id, recalc_on_unmet=False):
         tuple: True|False,
         prereq_meta_info = { 'url': prereq_url|None, 'display_name': prereq_name|None}
     """
-    course_id = content_id.course_key
+    course_key = content_id.course_key
 
     # if unfullfilled milestones exist it means prereq has not been met
     unfulfilled_milestones = milestones_helpers.get_course_content_milestones(
-        course_id,
+        course_key,
         content_id,
         'requires',
         user_id
@@ -370,24 +370,24 @@ def compute_is_prereq_met(content_id, user_id, recalc_on_unmet=False):
     student = User.objects.get(id=user_id)
     store = modulestore()
 
-    with store.bulk_operations(course_id):
+    with store.bulk_operations(course_key):
         subsection_usage_key = UsageKey.from_string(_get_gating_block_id(milestone))
         subsection = store.get_item(subsection_usage_key)
         prereq_meta_info = {
-            'url': reverse('jump_to', kwargs={'course_id': course_id, 'location': subsection_usage_key}),
+            'url': reverse('jump_to', kwargs={'course_id': course_key, 'location': subsection_usage_key}),
             'display_name': subsection.display_name
         }
 
-        if not subsection.visible_to_staff_only:
-            try:
-                subsection_structure = get_course_blocks(student, subsection_usage_key)
+        try:
+            subsection_structure = get_course_blocks(student, subsection_usage_key)
+            if any(subsection_structure):
                 subsection_grade_factory = SubsectionGradeFactory(student, course_structure=subsection_structure)
                 if subsection_usage_key in subsection_structure:
                     # this will force a recalcuation of the subsection grade
                     subsection_grade = subsection_grade_factory.update(subsection_structure[subsection_usage_key], persist_grade=False)
                     prereq_met = update_milestone(milestone, subsection_grade, milestone, user_id)
-            except ItemNotFoundError as err:
-                log.warning("Could not find course_block for subsection=%s error=%s", subsection_usage_key, err)
+        except ItemNotFoundError as err:
+            log.warning("Could not find course_block for subsection=%s error=%s", subsection_usage_key, err)
 
     return prereq_met, prereq_meta_info
 

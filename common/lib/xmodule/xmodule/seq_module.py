@@ -292,7 +292,7 @@ class SequenceModule(SequenceFields, ProctoringFields, XModule):
         self._update_position(context, len(display_items))
         prereq_met = True
 
-        if self._is_prereq_required():
+        if self._required_prereq():
             if self.runtime.user_is_staff:
                 banner_text = _('This subsection is unlocked for learners when they meet the prerequisite requirements.')
             else:
@@ -313,7 +313,7 @@ class SequenceModule(SequenceFields, ProctoringFields, XModule):
             'prev_url': context.get('prev_url'),
             'banner_text': banner_text,
             'disable_navigation': not self.is_user_authenticated(context),
-            'gate_content': not prereq_met,
+            'gated_content': not prereq_met,
             'prereq_url': prereq_meta_info['url'] if not prereq_met else None,
             'prereq_section_name': prereq_meta_info['display_name'] if not prereq_met else None,
             'gated_section_name': self.display_name
@@ -342,21 +342,21 @@ class SequenceModule(SequenceFields, ProctoringFields, XModule):
 
         return True
 
-    def _is_prereq_required(self):
+    def _required_prereq(self):
         """
         Checks whether a prerequiste is required for this Section
 
         Returns:
-            milestone if a prereq is required, False otherwise
+            milestone if a prereq is required, None otherwise
         """
         gating_service = self.runtime.service(self, 'gating')
         if gating_service:
-            milestone = gating_service.is_prereq_required(
+            milestone = gating_service.required_prereq(
                 self.course_id, self.location, 'requires'
             )
             return milestone
 
-        return False
+        return None
 
     def _compute_is_prereq_met(self, recalc_on_unmet):
         """
