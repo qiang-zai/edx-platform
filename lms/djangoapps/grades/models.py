@@ -553,6 +553,7 @@ class PersistentCourseGrade(TimeStampedModel):
             grade.passed_timestamp = now()
             grade.save()
 
+        # set passed_timestamp to None if grade later reverts to a failing grade
         if not passed and grade.passed_timestamp:
             grade.passed_timestamp = None
             grade.save()

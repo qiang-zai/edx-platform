@@ -16,10 +16,7 @@ class CertificateService(object):
 
     def invalidate_certificate(self, user_id, course_key_or_id):
         """
-        Get the generated certificate for user and invalidate its certificate when dropped below passing
-        threshold due to suspicious proctored exam
-
-        If generated certificate does not exist, do Nothing.
+        Invalidate the user certificate in a given course if it exists.
         """
         course_key = _get_key(course_key_or_id, CourseKey)
         try:
@@ -29,10 +26,14 @@ class CertificateService(object):
             )
             generated_certificate.invalidate()
             log.info(
-                u'Certificate invalidated for user %d in course %s when dropped below passing threshold due to '
-                u'suspicious proctored exam',
+                u'Certificate invalidated for user %d in course %s',
                 user_id,
                 course_key
             )
         except ObjectDoesNotExist:
+            log.warning(
+                u'Invalidation failed because a certificate for user %d in course %s does not exist.',
+                user_id,
+                course_key
+            )
             pass
