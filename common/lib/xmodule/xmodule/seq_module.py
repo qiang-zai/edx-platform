@@ -291,6 +291,7 @@ class SequenceModule(SequenceFields, ProctoringFields, XModule):
         display_items = self.get_display_items()
         self._update_position(context, len(display_items))
         prereq_met = True
+        prereq_meta_info = {}
 
         if self._required_prereq():
             if self.runtime.user_is_staff:
@@ -313,10 +314,7 @@ class SequenceModule(SequenceFields, ProctoringFields, XModule):
             'prev_url': context.get('prev_url'),
             'banner_text': banner_text,
             'disable_navigation': not self.is_user_authenticated(context),
-            'gated_content': not prereq_met,
-            'prereq_url': prereq_meta_info['url'] if not prereq_met else None,
-            'prereq_section_name': prereq_meta_info['display_name'] if not prereq_met else None,
-            'gated_section_name': self.display_name
+            'gated_content': self._get_gated_content_info(prereq_met, prereq_meta_info)
         }
         fragment.add_content(self.system.render_template("seq_module.html", params))
 
@@ -324,6 +322,18 @@ class SequenceModule(SequenceFields, ProctoringFields, XModule):
         self._capture_current_unit_metrics(display_items)
 
         return fragment
+
+    def _get_gated_content_info(self, prereq_met, prereq_meta_info):
+        """
+        Returns a dict of information about gated_content context
+        """
+        gated_content = {}
+        gated_content['gated'] = not prereq_met
+        gated_content['prereq_url'] = prereq_meta_info['url'] if not prereq_met else None
+        gated_content['prereq_section_name'] = prereq_meta_info['display_name'] if not prereq_met else None
+        gated_content['gated_section_name'] = self.display_name
+
+        return gated_content
 
     def _is_gate_fulfilled(self):
         """
