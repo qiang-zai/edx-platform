@@ -243,7 +243,7 @@ def get_course_runs_for_course(course_uuid):
         return []
 
 
-def get_pseudo_session_for_entitlement(entitlement):
+def get_pseudo_session_for_entitlement(entitlement, entitlements=None):
     """
     This function is used to pass pseudo-data to the front end, returning a single session, regardless of whether that
     session is currently available.
@@ -252,7 +252,8 @@ def get_pseudo_session_for_entitlement(entitlement):
     Returns None if there are no sessions for that course.
     """
     sessions_for_course = get_course_runs_for_course(entitlement.course_uuid)
-    available_sessions = get_fulfillable_course_runs_for_entitlement(entitlement, sessions_for_course)
+    available_sessions = get_fulfillable_course_runs_for_entitlement(entitlement, sessions_for_course,
+                                                                     entitlements=entitlements)
     if available_sessions:
         return available_sessions[0]
     if sessions_for_course:
@@ -260,15 +261,15 @@ def get_pseudo_session_for_entitlement(entitlement):
     return None
 
 
-def get_visible_sessions_for_entitlement(entitlement):
+def get_visible_sessions_for_entitlement(entitlement, entitlements=None):
     """
     Takes an entitlement object and returns the course runs that a user can currently enroll in.
     """
     sessions_for_course = get_course_runs_for_course(entitlement.course_uuid)
-    return get_fulfillable_course_runs_for_entitlement(entitlement, sessions_for_course)
+    return get_fulfillable_course_runs_for_entitlement(entitlement, sessions_for_course, entitlements=entitlements)
 
 
-def get_fulfillable_course_runs_for_entitlement(entitlement, course_runs):
+def get_fulfillable_course_runs_for_entitlement(entitlement, course_runs, entitlements=None):
     """
     Takes a list of course runs and returns only the course runs that:
 
@@ -276,11 +277,18 @@ def get_fulfillable_course_runs_for_entitlement(entitlement, course_runs):
     2) A user can enroll in
     3) A user can upgrade in
     4) Are published
+    5) Are not enrolled in by a user's other entitlements
 
     These are the only sessions that can be selected for an entitlement.
     """
 
     enrollable_sessions = []
+
+    enrolled_sessions = []
+    if entitlements:
+        for course_entitlement in entitlements:
+            if course_entitlement.enrollment_course_run:
+                enrolled_sessions.append(str(course_entitlement.enrollment_course_run.course_id))
 
     # Only show published course runs that can still be enrolled and upgraded
     now = datetime.datetime.now(UTC)
@@ -295,7 +303,8 @@ def get_fulfillable_course_runs_for_entitlement(entitlement, course_runs):
         enrollment_start = course_run.get('enrollment_start')
         enrollment_end = course_run.get('enrollment_end')
         can_enroll = ((not enrollment_start or datetime_parse(enrollment_start) < now)
-                      and (not enrollment_end or datetime_parse(enrollment_end) > now))
+                      and (not enrollment_end or datetime_parse(enrollment_end) > now)
+                      and course_run.get('key') not in enrolled_sessions)
 
         # Only upgrade-able courses will be displayed
         can_upgrade = False

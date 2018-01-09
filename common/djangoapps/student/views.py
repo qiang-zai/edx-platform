@@ -708,7 +708,7 @@ def dashboard(request):
     unfulfilled_entitlement_pseudo_sessions = {}
     for course_entitlement in course_entitlements:
         course_entitlement.update_expired_at()
-        available_sessions = get_visible_sessions_for_entitlement(course_entitlement)
+        available_sessions = get_visible_sessions_for_entitlement(course_entitlement, entitlements=course_entitlements)
         course_entitlement_available_sessions[str(course_entitlement.uuid)] = available_sessions
         if not course_entitlement.enrollment_course_run:
             # Unfulfilled entitlements need a mock session for metadata

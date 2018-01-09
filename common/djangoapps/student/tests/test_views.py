@@ -350,7 +350,8 @@ class StudentDashboardTests(SharedModuleStoreTestCase, MilestonesTestCaseMixin):
     @patch('student.views.get_visible_sessions_for_entitlement')
     @patch('student.views.get_pseudo_session_for_entitlement')
     @patch.object(CourseOverview, 'get_from_id')
-    def test_unfulfilled_entitlement(self, mock_course_overview, mock_pseudo_session, mock_course_runs, mock_get_programs):
+    def test_unfulfilled_entitlement(self, mock_course_overview, mock_pseudo_session,
+                                     mock_course_runs, mock_get_programs):
         """
         When a learner has an unfulfilled entitlement, their course dashboard should have:
             - a hidden 'View Course' button
@@ -359,9 +360,9 @@ class StudentDashboardTests(SharedModuleStoreTestCase, MilestonesTestCaseMixin):
             - a related programs message
         """
         program = ProgramFactory()
-        CourseEntitlementFactory(user=self.user, course_uuid=program['courses'][0]['uuid'])
+        CourseEntitlementFactory.create(user=self.user, course_uuid=program['courses'][0]['uuid'])
         mock_get_programs.return_value = [program]
-        mock_course_overview.return_value = CourseOverviewFactory(start=self.TOMORROW)
+        mock_course_overview.return_value = CourseOverviewFactory.create(start=self.TOMORROW)
         mock_course_runs.return_value = [
             {
                 'key': 'course-v1:FAKE+FA1-MA1.X+3T2017',
@@ -379,6 +380,26 @@ class StudentDashboardTests(SharedModuleStoreTestCase, MilestonesTestCaseMixin):
         self.assertIn('You must select a session to access the course.', response.content)
         self.assertIn('<div class="course-entitlement-selection-container ">', response.content)
         self.assertIn('Related Programs:', response.content)
+
+        # If an entitlement has already been redeemed by the user for a course run, do not let the run be selectable
+        enrollment = CourseEnrollmentFactory(user=self.user, course_id=unicode(mock_course_overview.return_value.id))
+        CourseEntitlementFactory.create(
+            user=self.user, course_uuid=program['courses'][0]['uuid'], enrollment_course_run=enrollment)
+
+        mock_course_runs.return_value = [
+            {
+                'key': 'course-v1:edX+toy+2012_Fall',
+                'enrollment_end': str(self.TOMORROW),
+                'pacing_type': 'instructor_paced',
+                'type': 'verified'
+            }
+        ]
+        response = self.client.get(self.path)
+        # There should be two entitlements on the course page, one prompting for a mandatory session, but no
+        # select option for the courses as there is only the single course run which has already been redeemed
+        self.assertEqual(response.content.count('<li class="course-item">'), 2)
+        self.assertIn('You must select a session to access the course.', response.content)
+        self.assertNotIn('To access the course, select a session.', response.content)
 
     @patch('student.views.get_visible_sessions_for_entitlement')
     @patch.object(CourseOverview, 'get_from_id')
