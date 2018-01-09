@@ -36,7 +36,7 @@ class CourseOutlineFragmentView(EdxFragmentView):
             'csrf': csrf(request)['csrf_token'],
             'course': course_overview,
             'blocks': course_block_tree,
-            'milestones': content_milestones
+            'gated_content': content_milestones
         }
         html = render_to_string('course_experience/course-outline-fragment.html', context)
         return Fragment(html)
