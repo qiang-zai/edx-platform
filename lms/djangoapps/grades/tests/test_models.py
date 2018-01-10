@@ -385,7 +385,7 @@ class PersistentCourseGradesTest(GradesModelTestCase):
         self.assertEqual(grade.letter_grade, u'A')
         self.assertEqual(grade.passed_timestamp, passed_timestamp)
 
-        # If the grade later reverts to a failing grade, passed_timestamp is None again
+        # If the grade later reverts to a failing grade, passed_timestamp remains the same.
         self.params.update({
             u'percent_grade': 20.0,
             u'letter_grade': u'',
@@ -393,7 +393,7 @@ class PersistentCourseGradesTest(GradesModelTestCase):
         })
         grade = PersistentCourseGrade.update_or_create(**self.params)
         self.assertEqual(grade.letter_grade, u'')
-        self.assertEqual(grade.passed_timestamp, None)
+        self.assertEqual(grade.passed_timestamp, passed_timestamp)
 
     def test_passed_timestamp_is_now(self):
         with freeze_time(now()):
