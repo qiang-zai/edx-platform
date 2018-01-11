@@ -4,7 +4,7 @@ Provides functionality to enable improved plugin support of Django apps.
 Once a Django project is enhanced with this functionality, any participating
 Django app (a.k.a. Plugin App) that is PIP-installed on the system is
 automatically included in the Django project's INSTALLED_APPS list. In addition,
-the participating Django app's URLs and Settings is automatically recognized by
+the participating Django app's URLs and Settings are automatically recognized by
 the Django project.
 
 While Django+Python already support dynamic installation of components/apps,
@@ -92,10 +92,10 @@ file:
 
                     # The namespace to provide to django's urls.include, per
                     # https://docs.djangoproject.com/en/2.0/topics/http/urls/#url-namespaces
-                    PluginURLs.namespace: u'grades_api',
+                    PluginURLs.namespace: u'my_app',
 
                     # The regex to provide to django's urls.url.
-                    PluginURLs.regex: u'api/grades/',
+                    PluginURLs.regex: u'api/my_app/',
 
                     # The python path (relative to this app) to the URLs module
                     # to be plugged into the project.
@@ -132,17 +132,17 @@ OR use string constants when you cannot import from django_plugins.
         name = u'full_python_path.my_app'
 
         plugin_app = {
-            url_config: {
-                lms.djangoapp: {
-                    namespace: u'grades_api',
-                    regex: u'api/grades/',
-                    relative_path: u'api.urls',
+            u'url_config': {
+                u'lms.djangoapp': {
+                    u'namespace': u'my_app',
+                    u'regex': u'api/my_app/',
+                    u'relative_path': u'api.urls',
                 }
             },
-            settings_config: {
-                lms.djangoapp: {
-                    aws: { relative_path: u'settings.aws' },
-                    common: { relative_path: u'settings.common'},
+            u'settings_config': {
+                u'lms.djangoapp': {
+                    u'aws': { relative_path: u'settings.aws' },
+                    u'common': { relative_path: u'settings.common'},
                 }
             }
         }
@@ -245,7 +245,7 @@ class DjangoAppRegistry(PluginManager):
                 class_name=app_config.__name__,
             )
             for app_config in cls._get_app_configs(project_type)
-            if getattr(app_config, PLUGIN_APP_CLASS_ATTRIBUTE_NAME, True)
+            if getattr(app_config, PLUGIN_APP_CLASS_ATTRIBUTE_NAME, False)
         ]
         log.info(u'Plugin Apps: Found %s', plugin_apps)
         return plugin_apps
@@ -269,7 +269,7 @@ class DjangoAppRegistry(PluginManager):
         """
         return [
             url(
-                _get_url_regex(url_config),
+                url_config.get(PluginURLs.regex, r''),
                 include(
                     url_module_path,
                     app_name=url_config.get(PluginURLs.app_name),
@@ -345,16 +345,3 @@ def _get_url_config(app_config, project_type):
     plugin_config = getattr(app_config, PLUGIN_APP_CLASS_ATTRIBUTE_NAME, {})
     url_config = plugin_config.get(PluginURLs.config, {})
     return url_config.get(project_type)
-
-
-def _iter_uppercase_attributes(obj):
-    def _is_uppercase(val):
-        return val == val.upper() and not val.startswith('_')
-
-    for name in filter(_is_uppercase, dir(obj)):
-        yield name, getattr(obj, name)
-
-
-def _get_url_regex(url_config):
-    regex = url_config.get(PluginURLs.regex)
-    return r'^{}'.format(regex) if regex else r''

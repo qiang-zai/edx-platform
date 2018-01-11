@@ -1,6 +1,7 @@
 """
 Adds support for first class plugins that can be added to the edX platform.
 """
+from collections import OrderedDict
 
 from stevedore.extension import ExtensionManager
 from openedx.core.lib.cache_utils import memoized
@@ -25,7 +26,7 @@ class PluginManager(object):
         """
         # Note: we're creating the extension manager lazily to ensure that the Python path
         # has been correctly set up. Trying to create this statically will fail, unfortunately.
-        plugins = {}
+        plugins = OrderedDict()
         extension_manager = ExtensionManager(namespace=namespace or cls.NAMESPACE)  # pylint: disable=no-member
         for plugin_name in extension_manager.names():
             plugins[plugin_name] = extension_manager[plugin_name].plugin
